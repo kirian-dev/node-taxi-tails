@@ -12,7 +12,7 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(loggerConfig),
   });
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
   app.enableCors({ origin: true, methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' });
   await app.listen(port || 3000);
 }
