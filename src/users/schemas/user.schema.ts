@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 
+export type UserDocument = User & Document;
+
+@Schema({ collection: 'users' })
 @Schema()
 export class User extends Document {
   _id: mongoose.Types.ObjectId | string;
