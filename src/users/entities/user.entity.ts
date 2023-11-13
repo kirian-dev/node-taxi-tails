@@ -6,4 +6,6 @@ export class User {
   email: string;
   password?: string;
   city: string;
+  is_verify: boolean;
+  verification_code: string;
 }

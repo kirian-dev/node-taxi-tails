@@ -5,6 +5,7 @@ import {
   MaxLength,
   IsPhoneNumber,
   IsEmail,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -43,4 +44,10 @@ export class CreateUserDto {
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   @MaxLength(32, { message: 'Password cannot be longer than 32 characters' })
   confirm_password: string;
+
+  @IsOptional()
+  is_verify: boolean;
+
+  @IsOptional()
+  verification_code: string;
 }

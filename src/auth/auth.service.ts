@@ -1,3 +1,4 @@
+import { sendVerificationEmail } from './../common/utils/email.helper';
 import {
   comparePasswords,
   equalPasswords,
@@ -26,6 +27,7 @@ import {
   LOGOUT_SUCCESS,
   REFRESH_EXPIRES,
 } from 'src/common/consts/consts';
+import { generateVerificationCode } from 'src/common/utils/http.helper';
 
 @Injectable()
 export class AuthService {
@@ -52,14 +54,23 @@ export class AuthService {
       if (existsUser) {
         throw new BadRequestException(USER_EXISTS_EMAIL_ERROR);
       }
+      const verificationCode = generateVerificationCode();
+      const updateUserDto = {
+        ...dto,
+        verification_code: verificationCode,
+        is_verify: false,
+      };
 
-      const newUser = await this.authRepository.createUser(dto);
+      const newUser = await this.authRepository.createUser(updateUserDto);
 
       if (!newUser) {
         throw new InternalServerErrorException();
       }
 
       const tokens = await this.createTokens(String(newUser._id));
+
+      sendVerificationEmail(newUser.email, verificationCode, this.logger);
+
       return {
         user: this.userResponseWithId(newUser),
         ...tokens,
