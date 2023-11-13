@@ -8,19 +8,20 @@ import {
   RefreshToken,
   RefreshTokenDocument,
 } from './schemas/refresh-token.schema';
-import { INVALID_TOKEN_ERROR } from 'src/common/error/auth.error';
+import { authErrors } from 'src/common/error/auth.error';
+import { UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class AuthRepository {
   private readonly logger = new Logger(AuthRepository.name);
 
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(RefreshToken.name)
     private readonly refreshTokenModel: Model<RefreshTokenDocument>,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
       const newUser = new this.userModel(createUserDto);
       return await newUser.save();
@@ -30,7 +31,7 @@ export class AuthRepository {
     }
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  async getUserByEmail(email: string): Promise<UserDocument | null> {
     try {
       return await this.userModel.findOne({ email }).exec();
     } catch (error) {
@@ -39,7 +40,7 @@ export class AuthRepository {
     }
   }
 
-  async getUserById(id: string): Promise<User | null> {
+  async getUserById(id: string): Promise<UserDocument | null> {
     try {
       return await this.userModel.findById(id).exec();
     } catch (error) {
@@ -105,7 +106,7 @@ export class AuthRepository {
       const result = await this.refreshTokenModel.findOneAndDelete({ token });
 
       if (!result) {
-        throw new UnauthorizedException(INVALID_TOKEN_ERROR);
+        throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
       }
     } catch (error) {
       this.logger.error(`Error deleting refresh token: ${error.message}`);

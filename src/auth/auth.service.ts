@@ -1,7 +1,7 @@
 import { sendVerificationEmail } from './../common/utils/email.helper';
 import {
-  comparePasswords,
-  equalPasswords,
+  comparePassword,
+  validatePasswords,
 } from './../common/security/security';
 import { AuthRepository } from './auth.repository';
 import {
@@ -14,13 +14,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import {
-  INVALID_CREDENTIALS_ERROR,
-  INVALID_TOKEN_ERROR,
-  PASSWORD_NOT_EQUAL_ERROR,
-  USER_EXISTS_EMAIL_ERROR,
-} from 'src/common/error/auth.error';
-import { User } from 'src/users/entities/user.entity';
+import { authErrors } from 'src/common/error/auth.error';
 import { LoginUserDto } from './dto/login-user.dto';
 import {
   ACCESS_EXPIRES,
@@ -40,19 +34,13 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
     try {
-      const isMatchPasswords = await equalPasswords(
-        dto.password,
-        dto.confirm_password,
-      );
-
-      if (!isMatchPasswords) {
-        throw new BadRequestException(PASSWORD_NOT_EQUAL_ERROR);
-      }
+      const { password, confirm_password } = dto;
+      await validatePasswords(password, confirm_password);
 
       const existsUser = await this.authRepository.getUserByEmail(dto.email);
 
       if (existsUser) {
-        throw new BadRequestException(USER_EXISTS_EMAIL_ERROR);
+        throw new BadRequestException(authErrors.USER_EXISTS_EMAIL_ERROR);
       }
       const verificationCode = generateVerificationCode();
       const updateUserDto = {
@@ -67,12 +55,13 @@ export class AuthService {
         throw new InternalServerErrorException();
       }
 
-      const tokens = await this.createTokens(String(newUser._id));
+      const userId: string = newUser._id || '';
+      const tokens = await this.createTokens(userId);
 
       sendVerificationEmail(newUser.email, verificationCode, this.logger);
 
       return {
-        user: this.userResponseWithId(newUser),
+        user: { _id: userId },
         ...tokens,
       };
     } catch (error) {
@@ -83,33 +72,29 @@ export class AuthService {
 
   async login(dto: LoginUserDto) {
     try {
-      const isMatchPasswords = await equalPasswords(
-        dto.password,
-        dto.confirm_password,
-      );
+      const { password, confirm_password } = dto;
 
-      if (!isMatchPasswords) {
-        throw new BadRequestException(PASSWORD_NOT_EQUAL_ERROR);
-      }
+      await validatePasswords(password, confirm_password);
 
       const existsUser = await this.authRepository.getUserByEmail(dto.email);
 
       if (!existsUser) {
-        throw new BadRequestException(INVALID_CREDENTIALS_ERROR);
+        throw new BadRequestException(authErrors.INVALID_CREDENTIALS_ERROR);
       }
 
-      const isComparePasswords = comparePasswords(
+      const isComparePasswords = comparePassword(
         dto.password,
         existsUser.password || '',
       );
 
       if (!isComparePasswords) {
-        throw new BadRequestException(INVALID_CREDENTIALS_ERROR);
+        throw new BadRequestException(authErrors.INVALID_CREDENTIALS_ERROR);
       }
 
-      const tokens = await this.createTokens(String(existsUser._id));
+      const userId: string = existsUser._id || '';
+      const tokens = await this.createTokens(userId);
       return {
-        user: this.userResponseWithId(existsUser),
+        user: { _id: userId },
         ...tokens,
       };
     } catch (error) {
@@ -121,7 +106,7 @@ export class AuthService {
   async logout(dto: RefreshTokenDto) {
     try {
       if (!dto.refresh_token) {
-        throw new UnauthorizedException(INVALID_TOKEN_ERROR);
+        throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
       }
 
       await this.authRepository.deleteRefreshToken(dto.refresh_token);
@@ -144,10 +129,10 @@ export class AuthService {
         expiresIn: REFRESH_EXPIRES,
       });
 
-      const existingRefreshToken =
+      const isRefreshTokenExist =
         await this.authRepository.getRefreshTokenByUserId(userId);
 
-      if (existingRefreshToken) {
+      if (isRefreshTokenExist) {
         await this.authRepository.updateRefreshToken(
           userId,
           refreshToken,
@@ -171,38 +156,26 @@ export class AuthService {
   async getNewTokens(refreshToken: RefreshTokenDto) {
     try {
       if (!refreshToken.refresh_token) {
-        throw new UnauthorizedException(INVALID_TOKEN_ERROR);
+        throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
       }
 
-      const result = this.jwtService.verify(refreshToken.refresh_token);
+      const decodedToken = this.jwtService.verify(refreshToken.refresh_token);
 
-      const user = await this.authRepository.getUserById(result._id);
+      const user = await this.authRepository.getUserById(decodedToken._id);
 
       if (!user) {
-        throw new UnauthorizedException(INVALID_TOKEN_ERROR);
+        throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
       }
 
       const tokens = await this.createTokens(String(user._id));
 
       return {
-        user: this.userResponseWithId(user),
+        user: { _id: String(user._id) },
         ...tokens,
       };
     } catch (error) {
       this.logger.error(`Error in getNewTokens: ${error.message}`);
-      throw new UnauthorizedException(INVALID_TOKEN_ERROR);
-    }
-  }
-
-  userResponseWithId(user: User) {
-    try {
-      const userId: string = user._id || '';
-      return {
-        _id: userId,
-      };
-    } catch (error) {
-      this.logger.error(`Error in userResponseWithId: ${error.message}`);
-      throw error;
+      throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
     }
   }
 }

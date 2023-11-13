@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
@@ -7,23 +7,58 @@ import { UsersRepository } from './users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  create(createUserDto: CreateUserDto) {
-    return this.usersRepository.create(createUserDto);
+  async create(createUserDto: CreateUserDto) {
+    try {
+      return await this.usersRepository.create(createUserDto);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error creating user',
+        error.message,
+      );
+    }
   }
 
-  findAll() {
-    return this.usersRepository.findAll();
+  async findAll() {
+    try {
+      return await this.usersRepository.findAll();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error fetching users',
+        error.message,
+      );
+    }
   }
 
-  findOne(id: string) {
-    return this.usersRepository.findOne(id);
+  async findOne(id: string) {
+    try {
+      return await this.usersRepository.findOne(id);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error fetching user by ID',
+        error.message,
+      );
+    }
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return this.usersRepository.update(id, updateUserDto);
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      return await this.usersRepository.update(id, updateUserDto);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error updating user',
+        error.message,
+      );
+    }
   }
 
-  remove(id: string) {
-    return this.usersRepository.remove(id);
+  async remove(id: string) {
+    try {
+      return await this.usersRepository.remove(id);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error removing user',
+        error.message,
+      );
+    }
   }
 }
