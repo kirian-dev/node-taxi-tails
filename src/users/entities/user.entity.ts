@@ -1,3 +1,5 @@
+import { AuthRoles } from 'src/common/enums/roles.enum';
+
 export class User {
   _id?: string;
   first_name: string;
@@ -8,4 +10,5 @@ export class User {
   city: string;
   is_verify: boolean;
   verification_code: string;
+  roles: AuthRoles[];
 }

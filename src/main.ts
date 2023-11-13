@@ -5,6 +5,7 @@ import { WinstonModule } from 'nest-winston';
 import { loggerConfig } from './configs/logger.config';
 import { config } from './configs/config';
 import { ValidationPipe } from '@nestjs/common';
+import * as passport from 'passport';
 
 const { port } = config();
 
@@ -16,6 +17,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.enableCors({ origin: true, methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' });
   app.useGlobalPipes(new ValidationPipe());
+  app.use(passport.initialize());
   await app.listen(port || 3000);
 }
 

@@ -11,6 +11,7 @@ import {
   RefreshTokenSchema,
 } from './schemas/refresh-token.schema';
 import { User } from 'src/users/entities/user.entity';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { User } from 'src/users/entities/user.entity';
       }),
     }),
   ],
-  providers: [AuthService, AuthRepository, User, RefreshToken],
+  providers: [AuthService, AuthRepository, User, RefreshToken, JwtStrategy],
 
   controllers: [AuthController],
   exports: [AuthRepository],
