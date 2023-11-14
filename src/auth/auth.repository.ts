@@ -1,5 +1,5 @@
 // auth.repository.ts
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -8,7 +8,7 @@ import {
   RefreshToken,
   RefreshTokenDocument,
 } from './schemas/refresh-token.schema';
-import { authErrors } from 'src/common/error/auth.error';
+import { AuthErrors } from 'src/common/error/auth.error';
 import { UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
@@ -26,7 +26,6 @@ export class AuthRepository {
       const newUser = new this.userModel(createUserDto);
       return await newUser.save();
     } catch (error) {
-      this.logger.error(`Error creating user: ${error.message}`);
       throw error;
     }
   }
@@ -35,7 +34,6 @@ export class AuthRepository {
     try {
       return await this.userModel.findOne({ email }).exec();
     } catch (error) {
-      this.logger.error(`Error getting user by email: ${error.message}`);
       throw error;
     }
   }
@@ -44,7 +42,6 @@ export class AuthRepository {
     try {
       return await this.userModel.findById(id).exec();
     } catch (error) {
-      this.logger.error(`Error getting user by ID: ${error.message}`);
       throw error;
     }
   }
@@ -62,7 +59,6 @@ export class AuthRepository {
       });
       return await refreshToken.save();
     } catch (error) {
-      this.logger.error(`Error creating refresh token: ${error.message}`);
       throw error;
     }
   }
@@ -80,12 +76,11 @@ export class AuthRepository {
       );
 
       if (!refreshToken) {
-        throw new Error('Refresh token not found');
+        throw AuthErrors.RefreshTokenNotFoundError;
       }
 
       return refreshToken;
     } catch (error) {
-      this.logger.error(`Error updating refresh token: ${error.message}`);
       throw error;
     }
   }
@@ -94,9 +89,6 @@ export class AuthRepository {
     try {
       return await this.refreshTokenModel.findOne({ token }).exec();
     } catch (error) {
-      this.logger.error(
-        `Error getting refresh token by token: ${error.message}`,
-      );
       throw error;
     }
   }
@@ -106,10 +98,9 @@ export class AuthRepository {
       const result = await this.refreshTokenModel.findOneAndDelete({ token });
 
       if (!result) {
-        throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
+        throw AuthErrors.InvalidTokenError;
       }
     } catch (error) {
-      this.logger.error(`Error deleting refresh token: ${error.message}`);
       throw error;
     }
   }
@@ -118,9 +109,6 @@ export class AuthRepository {
     try {
       return await this.refreshTokenModel.findOne({ userId }).exec();
     } catch (error) {
-      this.logger.error(
-        `Error getting refresh token by userId: ${error.message}`,
-      );
       throw error;
     }
   }
