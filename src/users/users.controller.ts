@@ -13,11 +13,14 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IdValidationPipe } from 'src/common/pipes/id-validation.pipe';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { AuthRoles } from 'src/common/enums/roles.enum';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Auth(AuthRoles.Admin)
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     try {
@@ -27,6 +30,7 @@ export class UsersController {
     }
   }
 
+  @Auth(AuthRoles.Admin)
   @Get()
   async findAll() {
     try {
@@ -36,6 +40,7 @@ export class UsersController {
     }
   }
 
+  @Auth(AuthRoles.Admin)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
@@ -45,6 +50,7 @@ export class UsersController {
     }
   }
 
+  @Auth(AuthRoles.Admin)
   @Patch(':id')
   async update(
     @Param('id', IdValidationPipe) id: string,
@@ -57,6 +63,7 @@ export class UsersController {
     }
   }
 
+  @Auth(AuthRoles.Admin)
   @Delete(':id')
   async remove(@Param('id', IdValidationPipe) id: string) {
     try {

@@ -8,4 +8,5 @@ export const authErrors = {
   USER_ALREADY_EXISTS_ERROR: 'User already exists',
   USER_EXISTS_EMAIL_ERROR: 'User with this email already exists',
   USER_NOT_FOUND_ERROR: 'User not found',
+  NO_ACCESS_RIGHTS_ERROR: 'No access rights',
 };

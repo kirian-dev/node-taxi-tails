@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId } from 'mongoose';
+import { AuthRoles } from 'src/common/enums/roles.enum';
 
 export type UserDocument = User & Document;
 
@@ -24,6 +25,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   city: string;
+
+  @Prop({ type: [String], enum: AuthRoles, default: [AuthRoles.User] })
+  roles: AuthRoles[];
 
   @Prop({ default: Date.now() })
   createdAt: Date;

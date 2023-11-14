@@ -1,6 +1,7 @@
 import { sendVerificationEmail } from './../common/utils/email.helper';
 import {
   comparePassword,
+  hashPassword,
   validatePasswords,
 } from './../common/security/security';
 import { AuthRepository } from './auth.repository';
@@ -22,6 +23,7 @@ import {
   REFRESH_EXPIRES,
 } from 'src/common/consts/consts';
 import { generateVerificationCode } from 'src/common/utils/http.helper';
+import { AuthRoles } from 'src/common/enums/roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -34,19 +36,20 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
     try {
-      const { password, confirm_password } = dto;
+      const { password, confirm_password, email } = dto;
       await validatePasswords(password, confirm_password);
 
-      const existsUser = await this.authRepository.getUserByEmail(dto.email);
-
+      const existsUser = await this.authRepository.getUserByEmail(email);
       if (existsUser) {
         throw new BadRequestException(authErrors.USER_EXISTS_EMAIL_ERROR);
       }
+      const hashedPassword = await hashPassword(password);
       const verificationCode = generateVerificationCode();
       const updateUserDto = {
         ...dto,
         verification_code: verificationCode,
         is_verify: false,
+        password: hashedPassword,
       };
 
       const newUser = await this.authRepository.createUser(updateUserDto);
@@ -56,7 +59,7 @@ export class AuthService {
       }
 
       const userId: string = newUser._id || '';
-      const tokens = await this.createTokens(userId);
+      const tokens = await this.createTokens(userId, newUser.roles);
 
       sendVerificationEmail(newUser.email, verificationCode, this.logger);
 
@@ -72,18 +75,18 @@ export class AuthService {
 
   async login(dto: LoginUserDto) {
     try {
-      const { password, confirm_password } = dto;
+      const { password, confirm_password, email } = dto;
 
       await validatePasswords(password, confirm_password);
 
-      const existsUser = await this.authRepository.getUserByEmail(dto.email);
+      const existsUser = await this.authRepository.getUserByEmail(email);
 
       if (!existsUser) {
         throw new BadRequestException(authErrors.INVALID_CREDENTIALS_ERROR);
       }
 
       const isComparePasswords = comparePassword(
-        dto.password,
+        password,
         existsUser.password || '',
       );
 
@@ -92,7 +95,7 @@ export class AuthService {
       }
 
       const userId: string = existsUser._id || '';
-      const tokens = await this.createTokens(userId);
+      const tokens = await this.createTokens(userId, existsUser.roles);
       return {
         user: { _id: userId },
         ...tokens,
@@ -118,9 +121,9 @@ export class AuthService {
     }
   }
 
-  async createTokens(userId: string) {
+  async createTokens(userId: string, roles: AuthRoles[]) {
     try {
-      const data = { _id: userId };
+      const data = { _id: userId, roles: roles };
 
       const accessToken = this.jwtService.sign(data, {
         expiresIn: ACCESS_EXPIRES,
@@ -167,10 +170,10 @@ export class AuthService {
         throw new UnauthorizedException(authErrors.INVALID_TOKEN_ERROR);
       }
 
-      const tokens = await this.createTokens(String(user._id));
+      const tokens = await this.createTokens(user._id.toString(), user.roles);
 
       return {
-        user: { _id: String(user._id) },
+        user: { _id: user._id },
         ...tokens,
       };
     } catch (error) {
