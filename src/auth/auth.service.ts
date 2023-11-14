@@ -18,6 +18,7 @@ import {
 } from 'src/common/consts/consts';
 import { generateVerificationCode } from 'src/common/utils/http.helper';
 import { AuthRoles } from 'src/common/enums/roles.enum';
+import { CreateUserResponseDto } from './dto/create-user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
   ) {}
 
-  async register(dto: CreateUserDto) {
+  async register(dto: CreateUserDto): Promise<CreateUserResponseDto> {
     try {
       const { password, confirm_password, email } = dto;
       await validatePasswords(password, confirm_password);
@@ -66,7 +67,7 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginUserDto) {
+  async login(dto: LoginUserDto): Promise<CreateUserResponseDto> {
     try {
       const { password, confirm_password, email } = dto;
 
