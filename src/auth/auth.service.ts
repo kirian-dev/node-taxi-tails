@@ -31,13 +31,20 @@ export class AuthService {
 
   async register(dto: CreateUserDto): Promise<CreateUserResponseDto> {
     try {
-      const { password, confirm_password, email } = dto;
+      const { password, confirm_password, email, is_driver } = dto;
       await validatePasswords(password, confirm_password);
+
+      const roles: AuthRoles[] = [AuthRoles.User];
+
+      if (is_driver) {
+        roles.push(AuthRoles.Driver);
+      }
 
       const existsUser = await this.authRepository.getUserByEmail(email);
       if (existsUser) {
         throw AuthErrors.UserExistsEmailError;
       }
+
       const hashedPassword = await hashPassword(password);
       const verificationCode = generateVerificationCode();
       const updateUserDto = {
@@ -45,6 +52,7 @@ export class AuthService {
         verification_code: verificationCode,
         is_verify: false,
         password: hashedPassword,
+        roles: roles,
       };
 
       const newUser = await this.authRepository.createUser(updateUserDto);

@@ -7,6 +7,7 @@ import {
   IsPhoneNumber,
   IsEmail,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -61,4 +62,12 @@ export class CreateUserDto {
 
   @IsOptional()
   verification_code: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  @ApiProperty({
+    example: false,
+    description: 'Flag indicating whether the user is a driver',
+  })
+  is_driver?: boolean;
 }

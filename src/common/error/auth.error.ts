@@ -47,4 +47,8 @@ export const AuthErrors = {
     authErrorsConsts.PASSWORD_NOT_EQUAL_ERROR,
     HttpStatus.BAD_REQUEST,
   ),
+  NoDriverAccessError: new CustomError(
+    authErrorsConsts.NO_ACCESS_RIGHTS_ERROR,
+    HttpStatus.FORBIDDEN,
+  ),
 };
