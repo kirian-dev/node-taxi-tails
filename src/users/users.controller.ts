@@ -17,13 +17,12 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthRoles } from 'src/common/enums/roles.enum';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 @ApiTags('users')
+@Auth(AuthRoles.Admin)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Auth(AuthRoles.Admin)
   @Post()
-  @Auth(AuthRoles.Admin)
   @Post()
   @ApiResponse({
     status: 201,
@@ -41,7 +40,6 @@ export class UsersController {
     }
   }
 
-  @Auth(AuthRoles.Admin)
   @Get()
   @ApiResponse({
     status: 200,
@@ -56,7 +54,6 @@ export class UsersController {
     }
   }
 
-  @Auth(AuthRoles.Admin)
   @ApiResponse({
     status: 200,
     description: 'User details retrieved successfully',
@@ -72,7 +69,6 @@ export class UsersController {
     }
   }
 
-  @Auth(AuthRoles.Admin)
   @Patch(':id')
   @ApiResponse({
     status: 200,
@@ -94,7 +90,6 @@ export class UsersController {
     }
   }
 
-  @Auth(AuthRoles.Admin)
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request' })

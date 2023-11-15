@@ -1,4 +1,4 @@
-import { sendVerificationEmail } from './../common/utils/email.helper';
+import { sendVerificationEmail } from '../common/helpers/email.helper';
 import {
   comparePassword,
   hashPassword,
@@ -16,7 +16,7 @@ import {
   LOGOUT_SUCCESS,
   REFRESH_EXPIRES,
 } from 'src/common/consts/consts';
-import { generateVerificationCode } from 'src/common/utils/http.helper';
+import { generateVerificationCode } from 'src/common/helpers/http.helper';
 import { AuthRoles } from 'src/common/enums/roles.enum';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 
