@@ -19,13 +19,14 @@ import { AuthRoles } from 'src/common/enums/roles.enum';
 import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { Car } from './entities/car.entity';
+import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
 
 @ApiTags('cars')
 @Controller('cars')
 export class CarsController {
   constructor(private readonly carsService: CarsService) {}
   @Post()
-  @Auth()
+  @Auth([AuthRoles.Driver])
   @ApiBearerAuth()
   @ApiResponse({
     status: 201,
@@ -36,7 +37,7 @@ export class CarsController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async createCar(
     @Body() createCarDto: CreateCarDto,
-    @AuthUser() user: AuthUser,
+    @AuthUser() user: IAuthUser,
   ) {
     const userId = user.userId;
     const createdCar = await this.carsService.createCar({
@@ -47,7 +48,7 @@ export class CarsController {
   }
 
   @Get()
-  @Auth(AuthRoles.Admin)
+  @Auth([AuthRoles.Admin])
   @ApiResponse({
     status: 200,
     description: 'List of cars',
@@ -77,7 +78,6 @@ export class CarsController {
       pageOptionsDto,
       filters,
     );
-
     return { success: true, data: result.data, meta: result.meta };
   }
 
@@ -91,10 +91,8 @@ export class CarsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getCarById(@Param('id') id: string, @AuthUser() user: AuthUser) {
-    const userId = user.userId;
-
-    const car = await this.carsService.getCarById(id, userId);
+  async getCarById(@Param('id') id: string) {
+    const car = await this.carsService.getCarById(id);
     return { success: true, data: car };
   }
 
@@ -111,7 +109,7 @@ export class CarsController {
   async updateCar(
     @Param('id') id: string,
     @Body() updateCarDto: UpdateCarDto,
-    @AuthUser() user: AuthUser,
+    @AuthUser() user: IAuthUser,
   ) {
     const userId = user.userId;
 
@@ -131,9 +129,8 @@ export class CarsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async deleteCar(@Param('id') id: string, @AuthUser() user: AuthUser) {
-    const userId = user.userId;
-    const isDeleted = await this.carsService.deleteCar(id, userId);
+  async deleteCar(@Param('id') id: string) {
+    const isDeleted = await this.carsService.deleteCar(id);
     return { success: true, data: isDeleted };
   }
 }

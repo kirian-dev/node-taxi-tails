@@ -62,35 +62,16 @@ export class OrdersService {
   async updateOrder(
     id: string,
     updateOrderDto: UpdateOrderDto,
-    userId: string,
   ): Promise<Order | null> {
     try {
-      const order = await this.ordersRepository.findOne(id);
-      if (!order) {
-        throw OrderErrors.OrderNotFoundError;
-      }
-
-      if (order.userId !== userId) {
-        throw OrderErrors.ForbiddenUpdateError;
-      }
-
       return await this.ordersRepository.update(id, updateOrderDto);
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteOrder(id: string, userId: string): Promise<boolean> {
+  async deleteOrder(id: string): Promise<boolean> {
     try {
-      const order = await this.ordersRepository.findOne(id);
-      if (!order) {
-        throw OrderErrors.OrderNotFoundError;
-      }
-
-      if (order.userId !== userId) {
-        throw OrderErrors.ForbiddenDeleteError;
-      }
-
       return await this.ordersRepository.remove(id);
     } catch (error) {
       throw error;

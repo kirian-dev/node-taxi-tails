@@ -6,22 +6,26 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-@Catch(HttpException)
+import { MongoError } from 'mongodb';
+@Catch(Error)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
   constructor() {}
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(error: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
+    let status = 500; // Default status for general errors
 
     let errorMessage: string | object = 'Internal Server Error';
 
-    if (exception instanceof HttpException) {
-      const responseError = exception.getResponse();
+    if (error instanceof HttpException) {
+      // If it's an HttpException, handle it specifically
+      status = error.getStatus();
+
+      const responseError = error.getResponse();
 
       if (typeof responseError === 'string') {
         errorMessage = responseError;
@@ -33,6 +37,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
 
       this.logger.error(errorMessage);
+    } else if (error instanceof MongoError) {
+      status = 500;
+      errorMessage = 'MongoDB Error: ' + error.message;
+
+      this.logger.error(errorMessage);
+    } else {
+      // For other general errors
+      this.logger.error(error.message);
     }
 
     response.status(status).json({

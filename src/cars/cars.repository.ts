@@ -38,10 +38,10 @@ export class CarsRepository {
         sort.createdAt = order === Order.ASC ? 'asc' : 'desc';
       }
 
-      const query = { ...filters };
-
+      const query = { ...filters, year: filters.year ? filters.year : '' };
+      console.log(query);
       return await this.carModel
-        .find(query)
+        .find()
         .sort(sort)
         .skip(skip)
         .limit(take || DEFAULT_ITEMS_PER_PAGE)

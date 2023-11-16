@@ -17,7 +17,7 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthRoles } from 'src/common/enums/roles.enum';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 @ApiTags('users')
-@Auth(AuthRoles.Admin)
+@Auth([AuthRoles.Admin])
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

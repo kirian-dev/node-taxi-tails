@@ -7,6 +7,7 @@ import { CarErrors } from 'src/common/error/cars.error';
 import { PageMetaDto } from 'src/common/helpers/pagination/page-meta.dto';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
+import { getDefault } from 'src/common/helpers/common.helper';
 
 @Injectable()
 export class CarsService {
@@ -36,15 +37,9 @@ export class CarsService {
 
   async updateCar(id: string, updateCarDto: UpdateCarDto): Promise<Car | null> {
     try {
-      const { userId, number_plate } = updateCarDto;
+      const { number_plate } = updateCarDto;
       const car = await this.carsRepository.findOne(id);
-      if (!car) {
-        throw CarErrors.CarNotFoundError;
-      }
-
-      if (car.userId.toString() !== userId) {
-        throw CarErrors.UserCarNotFoundError;
-      }
+      if (!car) throw CarErrors.CarNotFoundError;
 
       if (number_plate && number_plate !== car.number_plate) {
         const isNumberPlateUnique =
@@ -66,9 +61,12 @@ export class CarsService {
     filters: Partial<Car>,
   ): Promise<PageDto<Car>> {
     try {
+      filters.color = getDefault(filters.color, '');
+      filters.brand = getDefault(filters.brand, '');
+      filters.number_plate = getDefault(filters.number_plate, '');
+
       const cars = await this.carsRepository.findAll(pageOptionsDto, filters);
       const totalCount = await this.carsRepository.countAll();
-
       const meta = new PageMetaDto({
         pageOptionsDto,
         itemCount: totalCount,
@@ -79,16 +77,9 @@ export class CarsService {
       throw err;
     }
   }
-  async getCarById(id: string, userId: string): Promise<Car | null> {
+  async getCarById(id: string): Promise<Car | null> {
     try {
       const car = await this.carsRepository.findOne(id);
-      if (!car) {
-        throw CarErrors.CarNotFoundError;
-      }
-
-      if (car.userId.toString() !== userId) {
-        throw CarErrors.UserCarNotFoundError;
-      }
 
       return car;
     } catch (err) {
@@ -96,17 +87,8 @@ export class CarsService {
     }
   }
 
-  async deleteCar(id: string, userId: string): Promise<boolean> {
+  async deleteCar(id: string): Promise<boolean> {
     try {
-      const car = await this.carsRepository.findOne(id);
-      if (!car) {
-        throw CarErrors.CarNotFoundError;
-      }
-
-      if (car.userId.toString() !== userId) {
-        throw CarErrors.UserCarNotFoundError;
-      }
-
       const isDeleted = await this.carsRepository.remove(id);
       return isDeleted;
     } catch (err) {
