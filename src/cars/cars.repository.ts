@@ -38,7 +38,7 @@ export class CarsRepository {
         sort.createdAt = order === Order.ASC ? 'asc' : 'desc';
       }
 
-      const query = { ...filters, year: filters.year ? filters.year : '' };
+      const query = { ...filters };
       console.log(query);
       return await this.carModel
         .find()

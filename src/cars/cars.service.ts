@@ -8,14 +8,18 @@ import { PageMetaDto } from 'src/common/helpers/pagination/page-meta.dto';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 import { getDefault } from 'src/common/helpers/common.helper';
-
+import { uploadFileToS3 } from 'src/common/helpers/upload-file-s3.helper';
 @Injectable()
 export class CarsService {
   constructor(private readonly carsRepository: CarsRepository) {}
 
-  async createCar(createCarDto: CreateCarDto): Promise<Car> {
+  async createCar(
+    createCarDto: CreateCarDto,
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<Car> {
     try {
-      const { userId, number_plate } = createCarDto;
+      const { number_plate } = createCarDto;
       const existingCar = await this.carsRepository.findByUserId(userId);
       if (existingCar) {
         throw CarErrors.UserAlreadyHasCarError;
@@ -27,7 +31,16 @@ export class CarsService {
         throw CarErrors.NumberPlateNotUniqueError;
       }
 
-      const createdCar = await this.carsRepository.create(createCarDto);
+      const photoUrl = await uploadFileToS3({
+        entityId: userId,
+        entityType: 'cars',
+        file,
+      });
+      const createdCar = await this.carsRepository.create({
+        ...createCarDto,
+        photoUrl,
+        userId,
+      });
 
       return createdCar;
     } catch (err) {
@@ -64,6 +77,7 @@ export class CarsService {
       filters.color = getDefault(filters.color, '');
       filters.brand = getDefault(filters.brand, '');
       filters.number_plate = getDefault(filters.number_plate, '');
+      filters.year = getDefault(filters.year, '');
 
       const cars = await this.carsRepository.findAll(pageOptionsDto, filters);
       const totalCount = await this.carsRepository.countAll();

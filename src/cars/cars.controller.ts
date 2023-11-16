@@ -7,6 +7,11 @@ import {
   Body,
   Put,
   Query,
+  UploadedFile,
+  UseInterceptors,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CarsService } from './cars.service';
@@ -20,6 +25,11 @@ import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { Car } from './entities/car.entity';
 import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  MAX_SIZE_IMAGE_UPLOAD,
+  VALID_IMAGE_FORMATS,
+} from 'src/common/consts/consts';
 
 @ApiTags('cars')
 @Controller('cars')
@@ -35,15 +45,26 @@ export class CarsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @UseInterceptors(FileInterceptor('file'))
   async createCar(
     @Body() createCarDto: CreateCarDto,
     @AuthUser() user: IAuthUser,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: MAX_SIZE_IMAGE_UPLOAD }),
+          new FileTypeValidator({ fileType: VALID_IMAGE_FORMATS }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ) {
     const userId = user.userId;
-    const createdCar = await this.carsService.createCar({
-      ...createCarDto,
-      userId: userId,
-    });
+    const createdCar = await this.carsService.createCar(
+      createCarDto,
+      userId,
+      file,
+    );
     return { success: true, data: createdCar };
   }
 
@@ -65,7 +86,7 @@ export class CarsController {
     @Query('color') color: string,
     @Query('brand') brand: string,
     @Query('numberPlate') numberPlate: string,
-    @Query('year') year: number,
+    @Query('year') year: string,
   ) {
     const filters: Partial<Car> = {
       color,

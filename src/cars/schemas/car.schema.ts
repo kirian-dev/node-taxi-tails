@@ -14,7 +14,7 @@ export class Car {
   model: string;
 
   @Prop({ required: true })
-  year: number;
+  year: string;
 
   @Prop({ required: true })
   color: string;
@@ -28,6 +28,9 @@ export class Car {
     ref: 'User',
   })
   userId: string;
+
+  @Prop({ type: String })
+  photoUrl: string;
 
   @Prop({ default: Date.now() })
   createdAt: Date;
