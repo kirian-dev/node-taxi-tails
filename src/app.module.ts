@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/exception/custom-exception.filter';
+import { CarsModule } from './cars/cars.module';
+import { OrdersModule } from './orders/orders.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,6 +18,8 @@ import { HttpExceptionFilter } from './common/exception/custom-exception.filter'
     }),
     UsersModule,
     AuthModule,
+    CarsModule,
+    OrdersModule,
   ],
   providers: [
     {
