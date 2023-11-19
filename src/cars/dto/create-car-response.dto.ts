@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CreateCarDto } from './create-car.dto';
 
 export class CreateCarResponseDto extends CreateCarDto {
-  @ApiProperty({ example: 'carId', description: 'Car ID' })
+  @ApiProperty({ example: '_id', description: 'Car ID' })
   _id: string;
 
   @ApiProperty({

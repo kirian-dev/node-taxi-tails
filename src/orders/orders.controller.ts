@@ -25,6 +25,7 @@ import { OrderStatus } from './schemas/order.schema';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { Order } from './entities/order.entity';
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
+import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -48,7 +49,7 @@ export class OrdersController {
   }
 
   @Get()
-  @Auth(AuthRoles.Admin)
+  @Auth([AuthRoles.Admin])
   @ApiResponse({
     status: 200,
     description: 'List of orders',
@@ -82,7 +83,7 @@ export class OrdersController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getOrderById(@Param('id') id: string, @AuthUser() user: AuthUser) {
+  async getOrderById(@Param('id') id: string, @AuthUser() user: IAuthUser) {
     const order = await this.ordersService.getOrderById(id, user.userId);
     return { success: true, data: order };
   }
@@ -101,12 +102,10 @@ export class OrdersController {
   async updateOrder(
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
-    @AuthUser() user: AuthUser,
   ) {
     const updatedOrder = await this.ordersService.updateOrder(
       id,
       updateOrderDto,
-      user.userId,
     );
     return { success: true, data: updatedOrder };
   }
@@ -121,14 +120,13 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async deleteOrder(@Param('id') id: string, @AuthUser() user: AuthUser) {
-    const userId = user.userId;
-    const isDeleted = await this.ordersService.deleteOrder(id, userId);
+  async deleteOrder(@Param('id') id: string) {
+    const isDeleted = await this.ordersService.deleteOrder(id);
     return { success: true, data: isDeleted };
   }
 
   @Post(':id/driver/:driverId')
-  @Auth(AuthRoles.Driver)
+  @Auth([AuthRoles.Driver])
   @ApiResponse({
     status: 200,
     description: 'Order claimed successfully',
@@ -152,7 +150,7 @@ export class OrdersController {
   }
 
   @Get('current-orders')
-  @Auth(AuthRoles.Driver)
+  @Auth([AuthRoles.Driver])
   @ApiResponse({
     status: 200,
     description: 'List of current orders for the driver',
@@ -161,7 +159,7 @@ export class OrdersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getCurrentOrdersForDriver(@AuthUser() user: AuthUser) {
+  async getCurrentOrdersForDriver(@AuthUser() user: IAuthUser) {
     const currentOrders = await this.ordersService.getCurrentOrdersForDriver(
       user.userId,
     );

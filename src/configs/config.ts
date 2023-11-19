@@ -9,6 +9,9 @@ export type AppConfig = {
   smtpHost: string;
   smtpUser: string;
   smtpPassword: string;
+  awsAccessKeyId: string;
+  awsSecretAccessKey: string;
+  awsS3Region: string;
 };
 
 export const config = (): AppConfig => {
@@ -21,6 +24,9 @@ export const config = (): AppConfig => {
     SMTP_PASSWORD,
     SMTP_HOST,
     SMTP_PORT,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_S3_REGION,
   } = process.env;
 
   if (
@@ -31,7 +37,10 @@ export const config = (): AppConfig => {
     !SMTP_USER ||
     !SMTP_PASSWORD ||
     !SMTP_HOST ||
-    !SMTP_PORT
+    !SMTP_PORT ||
+    !AWS_ACCESS_KEY_ID ||
+    !AWS_SECRET_ACCESS_KEY ||
+    !AWS_S3_REGION
   ) {
     throw new Error(MISSING_ENV_VARS_ERROR);
   }
@@ -45,5 +54,8 @@ export const config = (): AppConfig => {
     smtpPassword: SMTP_PASSWORD,
     smtpHost: SMTP_HOST,
     smtpPort: SMTP_PORT,
+    awsAccessKeyId: AWS_ACCESS_KEY_ID,
+    awsSecretAccessKey: AWS_SECRET_ACCESS_KEY,
+    awsS3Region: AWS_S3_REGION,
   };
 };

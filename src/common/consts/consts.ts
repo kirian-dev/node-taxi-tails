@@ -6,3 +6,7 @@ export const REFRESH_EXPIRES = 604800;
 //Pagination consts
 export const DEFAULT_PAGE_QUANTITY = 1;
 export const DEFAULT_ITEMS_PER_PAGE = 10;
+
+//File
+export const MAX_SIZE_IMAGE_UPLOAD = 5000000;
+export const VALID_IMAGE_FORMATS = /jpeg|jpg/;
