@@ -38,4 +38,18 @@ export class UsersRepository {
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     return result.deletedCount > 0;
   }
+
+  async updateStatusDocs(userId: string, isStatus: boolean): Promise<boolean> {
+    try {
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        { isStatus },
+        { new: true },
+      );
+
+      return !!updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

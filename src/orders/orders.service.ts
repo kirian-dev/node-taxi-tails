@@ -1,3 +1,4 @@
+import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -10,7 +11,10 @@ import { OrderErrors } from 'src/common/error/order.error';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly ordersRepository: OrdersRepository) {}
+  constructor(
+    private readonly ordersRepository: OrdersRepository,
+    private readonly userRepository: UsersRepository,
+  ) {}
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
     try {
@@ -23,8 +27,13 @@ export class OrdersService {
   async getAllOrders(
     pageOptionsDto: PageOptionsDto,
     filters: Partial<Order>,
+    userId: string,
   ): Promise<PageDto<Order>> {
     try {
+      const user = await this.userRepository.findOne(userId);
+      if (user && !user.is_verify_docs) {
+        throw OrderErrors.VerifyDocumentsError;
+      }
       const orders = await this.ordersRepository.findAll(
         pageOptionsDto,
         filters,
