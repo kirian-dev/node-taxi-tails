@@ -1,20 +1,21 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { CarErrors } from 'src/common/error/cars.error';
 import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
 import { CarsRepository } from '../cars.repository';
+import { CarRequest } from 'src/common/interfaces/car.interface';
 
 @Injectable()
 export class CheckCarOwnerMiddleware implements NestMiddleware {
   constructor(private readonly carsRepository: CarsRepository) {}
 
-  async use(req: Request, res: Response, next: NextFunction) {
+  async use(req: CarRequest, res: Response, next: NextFunction) {
     const carId: string = req.params.id;
-    const userId: string = (req.user as IAuthUser).userId;
+    const userId: string = (req.user as IAuthUser)?.userId;
 
     try {
       const car = await this.carsRepository.findOne(carId);
-
+      console.log(car, userId, carId);
       if (!car) {
         throw CarErrors.CarNotFoundError;
       }
@@ -22,6 +23,8 @@ export class CheckCarOwnerMiddleware implements NestMiddleware {
       if (car.userId.toString() !== userId) {
         throw CarErrors.UserCarNotFoundError;
       }
+
+      req.car = car;
 
       next();
     } catch (error) {

@@ -1,6 +1,6 @@
 import { CarsRepository } from './cars.repository';
 import { Injectable } from '@nestjs/common';
-import { Car } from './schemas/car.schema';
+import { Car, CarDocument } from './schemas/car.schema';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { CarErrors } from 'src/common/error/cars.error';
@@ -8,7 +8,10 @@ import { PageMetaDto } from 'src/common/helpers/pagination/page-meta.dto';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 import { getDefault } from 'src/common/helpers/common.helper';
-import { uploadFileToS3 } from 'src/common/helpers/upload-file-s3.helper';
+import {
+  deletePhotosFromS3,
+  uploadFilesToS3,
+} from 'src/common/helpers/upload-file-s3.helper';
 @Injectable()
 export class CarsService {
   constructor(private readonly carsRepository: CarsRepository) {}
@@ -16,7 +19,7 @@ export class CarsService {
   async createCar(
     createCarDto: CreateCarDto,
     userId: string,
-    file: Express.Multer.File,
+    files: Express.Multer.File[],
   ): Promise<Car> {
     try {
       const { number_plate } = createCarDto;
@@ -31,14 +34,14 @@ export class CarsService {
         throw CarErrors.NumberPlateNotUniqueError;
       }
 
-      const photoUrl = await uploadFileToS3({
+      const photoUrls = await uploadFilesToS3({
         entityId: userId,
         entityType: 'cars',
-        file,
+        files,
       });
       const createdCar = await this.carsRepository.create({
         ...createCarDto,
-        photoUrl,
+        photoUrls,
         userId,
       });
 
@@ -48,11 +51,24 @@ export class CarsService {
     }
   }
 
-  async updateCar(id: string, updateCarDto: UpdateCarDto): Promise<Car | null> {
+  async updateCar(
+    id: string,
+    updateCarDto: UpdateCarDto,
+    files: Express.Multer.File[],
+    car: CarDocument,
+  ): Promise<Car | null> {
     try {
       const { number_plate } = updateCarDto;
-      const car = await this.carsRepository.findOne(id);
-      if (!car) throw CarErrors.CarNotFoundError;
+
+      await deletePhotosFromS3(car.photoUrls);
+
+      const photoUrls = await uploadFilesToS3({
+        entityId: id,
+        entityType: 'cars',
+        files,
+      });
+
+      updateCarDto.photoUrls = photoUrls;
 
       if (number_plate && number_plate !== car.number_plate) {
         const isNumberPlateUnique =
@@ -101,8 +117,9 @@ export class CarsService {
     }
   }
 
-  async deleteCar(id: string): Promise<boolean> {
+  async deleteCar(id: string, photoUrls: string[]): Promise<boolean> {
     try {
+      await deletePhotosFromS3(photoUrls);
       const isDeleted = await this.carsRepository.remove(id);
       return isDeleted;
     } catch (err) {

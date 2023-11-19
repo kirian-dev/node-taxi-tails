@@ -29,8 +29,8 @@ export class Car {
   })
   userId: string;
 
-  @Prop({ type: String })
-  photoUrl: string;
+  @Prop({ type: [String] })
+  photoUrls: string[];
 
   @Prop({ default: Date.now() })
   createdAt: Date;
