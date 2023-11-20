@@ -31,7 +31,7 @@ export class OrdersService {
   ): Promise<PageDto<Order>> {
     try {
       const user = await this.userRepository.findOne(userId);
-      if (user && !user.is_verify_docs) {
+      if (!user?.is_verify_docs) {
         throw OrderErrors.VerifyDocumentsError;
       }
       const orders = await this.ordersRepository.findAll(
