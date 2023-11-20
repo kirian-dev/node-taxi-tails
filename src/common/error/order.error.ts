@@ -5,6 +5,7 @@ export const orderErrorsConsts = {
   ORDER_NOT_FOUND_ERROR: 'Order not found',
   FORBIDDEN_UPDATE_ERROR: 'You are not allowed to update this order',
   FORBIDDEN_DELETE_ERROR: 'You are not allowed to delete this order',
+  ADD_DOCUMENTS_ERROR: 'You need verify new documents',
 };
 
 export const OrderErrors = {
@@ -19,5 +20,9 @@ export const OrderErrors = {
   ForbiddenDeleteError: new CustomError(
     orderErrorsConsts.FORBIDDEN_DELETE_ERROR,
     HttpStatus.FORBIDDEN,
+  ),
+  VerifyDocumentsError: new CustomError(
+    orderErrorsConsts.ADD_DOCUMENTS_ERROR,
+    HttpStatus.BAD_REQUEST,
   ),
 };

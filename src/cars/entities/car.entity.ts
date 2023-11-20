@@ -8,7 +8,7 @@ export class Car {
   color: string;
   number_plate: string;
   userId: string;
-  photoUrl: string;
+  photoUrls: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -49,7 +49,7 @@ export class OrdersController {
   }
 
   @Get()
-  @Auth([AuthRoles.Admin])
+  @Auth([AuthRoles.Driver])
   @ApiResponse({
     status: 200,
     description: 'List of orders',
@@ -63,11 +63,13 @@ export class OrdersController {
   async getAllOrders(
     @Query() pageOptionsDto: PageOptionsDto,
     @Query('status') status: OrderStatus,
+    @AuthUser() user: IAuthUser,
   ) {
     const filters: Partial<Order> = { status };
     const result: PageDto<Order> = await this.ordersService.getAllOrders(
       pageOptionsDto,
       filters,
+      user.userId,
     );
     return { success: true, data: result.data, meta: result.meta };
   }

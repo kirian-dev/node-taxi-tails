@@ -7,11 +7,12 @@ import {
   Body,
   Put,
   Query,
-  UploadedFile,
   UseInterceptors,
-  ParseFilePipe,
+  UploadedFiles,
   MaxFileSizeValidator,
   FileTypeValidator,
+  ParseFilePipe,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CarsService } from './cars.service';
@@ -25,18 +26,19 @@ import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { Car } from './entities/car.entity';
 import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   MAX_SIZE_IMAGE_UPLOAD,
   VALID_IMAGE_FORMATS,
 } from 'src/common/consts/consts';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { CarRequest } from 'src/common/interfaces/car.interface';
 
+@Auth([AuthRoles.Driver])
 @ApiTags('cars')
 @Controller('cars')
 export class CarsController {
   constructor(private readonly carsService: CarsService) {}
   @Post()
-  @Auth([AuthRoles.Driver])
   @ApiBearerAuth()
   @ApiResponse({
     status: 201,
@@ -45,11 +47,11 @@ export class CarsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(AnyFilesInterceptor())
   async createCar(
     @Body() createCarDto: CreateCarDto,
     @AuthUser() user: IAuthUser,
-    @UploadedFile(
+    @UploadedFiles(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: MAX_SIZE_IMAGE_UPLOAD }),
@@ -57,14 +59,15 @@ export class CarsController {
         ],
       }),
     )
-    file: Express.Multer.File,
+    files: Array<Express.Multer.File>,
   ) {
     const userId = user.userId;
     const createdCar = await this.carsService.createCar(
       createCarDto,
       userId,
-      file,
+      files,
     );
+
     return { success: true, data: createdCar };
   }
 
@@ -103,7 +106,6 @@ export class CarsController {
   }
 
   @Get(':id')
-  @Auth()
   @ApiResponse({
     status: 200,
     description: 'Car details',
@@ -118,7 +120,6 @@ export class CarsController {
   }
 
   @Put(':id')
-  @Auth()
   @ApiResponse({
     status: 200,
     description: 'Car updated successfully',
@@ -131,18 +132,32 @@ export class CarsController {
     @Param('id') id: string,
     @Body() updateCarDto: UpdateCarDto,
     @AuthUser() user: IAuthUser,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: MAX_SIZE_IMAGE_UPLOAD }),
+          new FileTypeValidator({ fileType: VALID_IMAGE_FORMATS }),
+        ],
+      }),
+    )
+    files: Array<Express.Multer.File>,
+    @Req() req: CarRequest,
   ) {
+    if (!req.car) return;
     const userId = user.userId;
-
-    const updatedCar = await this.carsService.updateCar(id, {
-      ...updateCarDto,
-      userId: userId,
-    });
+    const updatedCar = await this.carsService.updateCar(
+      id,
+      {
+        ...updateCarDto,
+        userId: userId,
+      },
+      files,
+      req?.car,
+    );
     return { success: true, data: updatedCar };
   }
 
   @Delete(':id')
-  @Auth()
   @ApiResponse({
     status: 200,
     description: 'Car deleted successfully',
@@ -150,8 +165,11 @@ export class CarsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async deleteCar(@Param('id') id: string) {
-    const isDeleted = await this.carsService.deleteCar(id);
+  async deleteCar(@Param('id') id: string, @Req() req: CarRequest) {
+    const isDeleted = await this.carsService.deleteCar(
+      id,
+      req.car?.photoUrls || [],
+    );
     return { success: true, data: isDeleted };
   }
 }

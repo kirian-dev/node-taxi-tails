@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCarDto {
   @ApiProperty({ example: 'Toyota', description: 'Car brand' })
@@ -28,11 +28,12 @@ export class CreateCarDto {
   color: string;
 
   @ApiProperty({
-    example: 'https/amazon-s3.test.com',
+    example: ['https/amazon-s3.test.com', 'https/amazon-s3.test2.com'],
     description: 'Car photo',
   })
   @IsOptional()
-  photoUrl: string;
+  @IsArray()
+  photoUrls: string[];
 
   @ApiProperty({ example: 'userId', description: 'User ID' })
   userId: string;
