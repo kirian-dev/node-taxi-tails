@@ -10,5 +10,6 @@ export class User {
   city: string;
   is_verify: boolean;
   verification_code: string;
+  is_verify_docs: boolean;
   roles: AuthRoles[];
 }

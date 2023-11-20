@@ -29,6 +29,9 @@ export class User extends Document {
   @Prop({ type: [String], enum: AuthRoles, default: [AuthRoles.User] })
   roles: AuthRoles[];
 
+  @Prop({ type: Boolean, default: false })
+  is_verify_docs: boolean;
+
   @Prop({ default: Date.now() })
   createdAt: Date;
 
