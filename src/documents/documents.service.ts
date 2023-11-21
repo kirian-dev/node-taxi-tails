@@ -19,9 +19,8 @@ export class DocumentsService {
     createDocumentDto: CreateDocumentDto,
   ): Promise<Document> {
     try {
+      const { userId } = createDocumentDto;
       const newDoc = await this.documentsRepository.create(createDocumentDto);
-
-      const userId = createDocumentDto.userId;
 
       await this.usersRepository.updateStatusDocs(userId, true);
 

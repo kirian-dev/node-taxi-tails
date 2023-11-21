@@ -32,6 +32,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post()
+  @Auth([AuthRoles.Driver])
   @ApiOperation({ summary: 'Create a new document' })
   @ApiResponse({
     status: 201,
@@ -42,9 +43,10 @@ export class DocumentsController {
     @Body() createDocumentDto: CreateDocumentDto,
     @AuthUser() user: IAuthUser,
   ) {
+    const userId = user?.userId;
     const createdDocument = await this.documentsService.createDocument({
       ...createDocumentDto,
-      userId: user.userId,
+      userId,
     });
 
     return { success: true, data: createdDocument };

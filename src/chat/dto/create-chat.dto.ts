@@ -12,4 +12,9 @@ export class CreateChatDto {
   @IsNotEmpty()
   @IsString()
   driverId: string | ObjectId;
+
+  @ApiProperty({ example: 'orderId', description: 'Order ID' })
+  @IsNotEmpty()
+  @IsString()
+  orderId: string | ObjectId;
 }

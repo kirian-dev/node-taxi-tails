@@ -17,6 +17,9 @@ export class Chat {
   @Prop({ type: Types.ObjectId, required: true, ref: 'User' })
   driverId: ObjectId | string;
 
+  @Prop({ type: Types.ObjectId, required: true, ref: 'Order' })
+  orderId: ObjectId | string;
+
   @Prop({ default: Date.now() })
   createdAt: Date;
 

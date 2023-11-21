@@ -33,7 +33,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @Auth()
+  @Auth([AuthRoles.User])
   @ApiBearerAuth()
   @ApiResponse({
     status: 201,
@@ -43,8 +43,15 @@ export class OrdersController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async createOrder(@Body() createOrderDto: CreateOrderDto) {
-    const createdOrder = await this.ordersService.createOrder(createOrderDto);
+  async createOrder(
+    @Body() createOrderDto: CreateOrderDto,
+    @AuthUser() user: IAuthUser,
+  ) {
+    const userId = user.userId;
+    const createdOrder = await this.ordersService.createOrder({
+      ...createOrderDto,
+      userId,
+    });
     return { success: true, data: createdOrder };
   }
 
@@ -127,7 +134,7 @@ export class OrdersController {
     return { success: true, data: isDeleted };
   }
 
-  @Post(':id/driver/:driverId')
+  @Put(':id/driver/:driverId')
   @Auth([AuthRoles.Driver])
   @ApiResponse({
     status: 200,

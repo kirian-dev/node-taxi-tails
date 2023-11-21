@@ -9,22 +9,42 @@ export class MessagesService {
   constructor(private readonly messagesRepository: MessagesRepository) {}
 
   async createMessage(createMessageDto: CreateMessageDto): Promise<Message> {
-    return this.messagesRepository.createMessage(createMessageDto);
+    try {
+      return await this.messagesRepository.createMessage(createMessageDto);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAllMessages(): Promise<Message[]> {
-    return this.messagesRepository.findAllMessages();
+    try {
+      return await this.messagesRepository.findAllMessages();
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findMessageById(id: string | ObjectId): Promise<Message | null> {
-    return this.messagesRepository.findMessageById(id);
+    try {
+      return await this.messagesRepository.findMessageById(id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAllMessagesByChatId(chatId: string | ObjectId): Promise<Message[]> {
-    return this.messagesRepository.findAllMessagesByChatId(chatId);
+    try {
+      return await this.messagesRepository.findAllMessagesByChatId(chatId);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async deleteMessage(id: string | ObjectId): Promise<Message | null> {
-    return this.messagesRepository.deleteMessage(id);
+    try {
+      return await this.messagesRepository.deleteMessage(id);
+    } catch (error) {
+      throw error;
+    }
   }
 }

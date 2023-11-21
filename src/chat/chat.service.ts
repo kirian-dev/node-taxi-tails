@@ -15,9 +15,6 @@ export class ChatService {
       const createdChat = await this.chatRepository.createChat(createChatDto);
       return createdChat;
     } catch (error) {
-      if (error) {
-        throw chatErrors.ChatNotFoundError;
-      }
       throw error;
     }
   }
