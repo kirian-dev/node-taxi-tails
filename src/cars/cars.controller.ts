@@ -31,7 +31,7 @@ import {
   VALID_IMAGE_FORMATS,
 } from 'src/common/consts/consts';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { CarRequest } from 'src/common/interfaces/car.interface';
+import { ICarRequest } from 'src/common/interfaces/car.interface';
 
 @Auth([AuthRoles.Driver])
 @ApiTags('cars')
@@ -141,7 +141,7 @@ export class CarsController {
       }),
     )
     files: Array<Express.Multer.File>,
-    @Req() req: CarRequest,
+    @Req() req: ICarRequest,
   ) {
     if (!req.car) return;
     const userId = user.userId;
@@ -165,7 +165,7 @@ export class CarsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async deleteCar(@Param('id') id: string, @Req() req: CarRequest) {
+  async deleteCar(@Param('id') id: string, @Req() req: ICarRequest) {
     const isDeleted = await this.carsService.deleteCar(
       id,
       req.car?.photoUrls || [],

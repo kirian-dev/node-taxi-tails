@@ -13,17 +13,17 @@ export class CreateDocumentDto {
   documentNumber: number;
 
   @ApiProperty({ example: 'AC', description: 'Series' })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  series?: string;
+  series: string;
 
   @ApiProperty({ example: '2023-01-01', description: 'Date of issue' })
   @IsNotEmpty()
   @IsString()
-  issueDate?: string;
+  issueDate: string;
 
   @ApiProperty({ example: 'userId', description: 'User ID' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   userId: string;
 }

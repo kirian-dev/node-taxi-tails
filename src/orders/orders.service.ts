@@ -1,3 +1,4 @@
+import { ChatRepository } from './../chat/chat.repository';
 import { UsersRepository } from './../users/users.repository';
 import { Injectable } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
@@ -14,6 +15,7 @@ export class OrdersService {
   constructor(
     private readonly ordersRepository: OrdersRepository,
     private readonly userRepository: UsersRepository,
+    private readonly chatRepository: ChatRepository,
   ) {}
 
   async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
@@ -31,7 +33,7 @@ export class OrdersService {
   ): Promise<PageDto<Order>> {
     try {
       const user = await this.userRepository.findOne(userId);
-      if (user && !user.is_verify_docs) {
+      if (!user?.is_verify_docs) {
         throw OrderErrors.VerifyDocumentsError;
       }
       const orders = await this.ordersRepository.findAll(
@@ -92,7 +94,17 @@ export class OrdersService {
     driverId: string,
   ): Promise<Order | null> {
     try {
-      return await this.ordersRepository.updateOrderByDriver(id, driverId);
+      const order = await this.ordersRepository.updateOrderByDriver(
+        id,
+        driverId,
+      );
+      await this.chatRepository.createChat({
+        userId: order?.userId || '',
+        driverId: driverId,
+        orderId: order?._id,
+      });
+
+      return order;
     } catch (error) {
       throw error;
     }

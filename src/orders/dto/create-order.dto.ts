@@ -1,7 +1,13 @@
-import { IsNotEmpty, IsString, IsNumber, IsObject } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsObject,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateOrderDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   userId: string;
 

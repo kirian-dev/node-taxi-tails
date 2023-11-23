@@ -9,6 +9,7 @@ import { HttpExceptionFilter } from './common/exception/custom-exception.filter'
 import { CarsModule } from './cars/cars.module';
 import { OrdersModule } from './orders/orders.module';
 import { DocumentsModule } from './documents/documents.module';
+import { ChatModule } from './chat/chat.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,6 +23,7 @@ import { DocumentsModule } from './documents/documents.module';
     CarsModule,
     OrdersModule,
     DocumentsModule,
+    ChatModule,
   ],
   providers: [
     {
