@@ -3,6 +3,7 @@ import { ObjectId } from 'mongoose';
 import { MessagesRepository } from './messages.repository';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from './schemas/message.schema';
+import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 
 @Injectable()
 export class MessagesService {
@@ -32,9 +33,15 @@ export class MessagesService {
     }
   }
 
-  async findAllMessagesByChatId(chatId: string | ObjectId): Promise<Message[]> {
+  async findAllMessagesByChatId(
+    chatId: string | ObjectId,
+    pagOptions: PageOptionsDto,
+  ): Promise<Message[]> {
     try {
-      return await this.messagesRepository.findAllMessagesByChatId(chatId);
+      return await this.messagesRepository.findAllMessagesByChatId(
+        chatId,
+        pagOptions,
+      );
     } catch (error) {
       throw error;
     }

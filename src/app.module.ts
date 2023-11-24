@@ -10,6 +10,8 @@ import { CarsModule } from './cars/cars.module';
 import { OrdersModule } from './orders/orders.module';
 import { DocumentsModule } from './documents/documents.module';
 import { ChatModule } from './chat/chat.module';
+import { DriverOrdersModule } from './driver-orders/driver-orders.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,6 +26,8 @@ import { ChatModule } from './chat/chat.module';
     OrdersModule,
     DocumentsModule,
     ChatModule,
+    DriverOrdersModule,
+    ScheduleModule.forRoot(),
   ],
   providers: [
     {

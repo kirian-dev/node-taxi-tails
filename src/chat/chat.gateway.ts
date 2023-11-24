@@ -14,6 +14,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { MessagesService } from './messages.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthRoles } from 'src/common/enums/roles.enum';
+import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
 
 @WebSocketGateway()
 export class ChatGateway {
@@ -67,8 +68,15 @@ export class ChatGateway {
 
   @Auth([AuthRoles.Driver, AuthRoles.User])
   @SubscribeMessage('findAllMessagesByChatId')
-  async findAllMessagesByChatId(@MessageBody() chatId: string | ObjectId) {
-    return this.messagesService.findAllMessagesByChatId(chatId);
+  async findAllMessagesByChatId(
+    @MessageBody() chatId: string | ObjectId,
+    @MessageBody() pageOptions: PageOptionsDto,
+  ) {
+    const messages = await this.messagesService.findAllMessagesByChatId(
+      chatId,
+      pageOptions,
+    );
+    return { data: messages, meta: pageOptions };
   }
 
   @Auth([AuthRoles.Driver, AuthRoles.User])

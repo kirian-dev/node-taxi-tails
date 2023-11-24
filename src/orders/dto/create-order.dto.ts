@@ -13,11 +13,15 @@ export class CreateOrderDto {
 
   @IsNotEmpty()
   @IsObject()
-  pickupLocation: { latitude: number; longitude: number };
+  pickupLocation: {
+    coordinates: [number, number];
+  };
 
   @IsNotEmpty()
   @IsObject()
-  dropOffLocation: { latitude: number; longitude: number };
+  dropOffLocation: {
+    coordinates: [number, number];
+  };
 
   @IsNotEmpty()
   @IsNumber()

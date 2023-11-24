@@ -1,5 +1,3 @@
-// orders.repository.ts
-
 import { OrderDocument, OrderStatus } from './schemas/order.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,7 +6,10 @@ import { Order as OrderEntity } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PageOptionsDto } from 'src/common/helpers/pagination/pagination.dtos';
-import { DEFAULT_ITEMS_PER_PAGE } from 'src/common/consts/consts';
+import {
+  DEFAULT_ITEMS_PER_PAGE,
+  MAX_DISTANCE_SEARCH_ORDERS,
+} from 'src/common/consts/consts';
 import { Order } from 'src/common/enums/system.enum';
 
 @Injectable()
@@ -127,6 +128,30 @@ export class OrdersRepository {
       return await this.orderModel
         .find({ driverId, status: OrderStatus.InProgress })
         .exec();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findOrdersNearCoordinates(coordinates: [number, number]) {
+    console.log('coordinates', coordinates);
+    try {
+      const nearbyOrders = await this.orderModel
+        .find({
+          status: OrderStatus.Pending,
+          pickupLocation: {
+            $nearSphere: {
+              $geometry: {
+                type: 'Point',
+                coordinates: [150.644, -34.397],
+              },
+              $maxDistance: MAX_DISTANCE_SEARCH_ORDERS * 10000,
+            },
+          },
+        })
+        .exec();
+
+      return nearbyOrders;
     } catch (error) {
       throw error;
     }

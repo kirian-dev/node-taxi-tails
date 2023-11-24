@@ -5,6 +5,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserDocument } from './schemas/user.schema';
+import { AuthRoles } from 'src/common/enums/roles.enum';
+import { Location } from 'src/common/interfaces/order.interface';
 
 @Injectable()
 export class UsersRepository {
@@ -44,6 +46,27 @@ export class UsersRepository {
       const updatedUser = await this.userModel.findByIdAndUpdate(
         userId,
         { isStatus },
+        { new: true },
+      );
+
+      return !!updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findDrivers(): Promise<UserDocument[]> {
+    return this.userModel.find({ roles: AuthRoles.Driver }).exec();
+  }
+
+  async addCoordinates(
+    userId: string,
+    coordinates: Location,
+  ): Promise<boolean> {
+    try {
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        { coordinates },
         { new: true },
       );
 

@@ -32,6 +32,9 @@ export class User extends Document {
   @Prop({ type: Boolean, default: false })
   is_verify_docs: boolean;
 
+  @Prop({ type: [] })
+  coordinates: [number, number];
+
   @Prop({ default: Date.now() })
   createdAt: Date;
 
