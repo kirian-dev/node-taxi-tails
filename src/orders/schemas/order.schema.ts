@@ -3,14 +3,6 @@ import { Document, ObjectId, Types } from 'mongoose';
 
 export type OrderDocument = Order & Document;
 
-export class Location {
-  @Prop({ required: true })
-  latitude: number;
-
-  @Prop({ required: true })
-  longitude: number;
-}
-
 export enum OrderStatus {
   Pending = 'pending',
   Completed = 'completed',
@@ -28,11 +20,25 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, required: false, ref: 'User' })
   driverId: string | null;
 
-  @Prop({ required: true, type: Location })
-  pickupLocation: Location;
+  @Prop({ required: true, type: Object })
+  pickupLocation: {
+    type: {
+      type: string;
+      enum: ['Point'];
+      default: 'Point';
+    };
+    coordinates: [number, number];
+  };
 
-  @Prop({ required: true, type: Location })
-  dropOffLocation: Location;
+  @Prop({ required: true, type: Object })
+  dropOffLocation: {
+    type: {
+      type: string;
+      enum: ['Point'];
+      default: 'Point';
+    };
+    coordinates: [number, number];
+  };
 
   @Prop({ required: true })
   fare: number;
@@ -48,3 +54,4 @@ export class Order extends Document {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+OrderSchema.index({ pickupLocation: '2dsphere' }, { unique: true });

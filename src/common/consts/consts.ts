@@ -10,3 +10,6 @@ export const DEFAULT_ITEMS_PER_PAGE = 10;
 //File
 export const MAX_SIZE_IMAGE_UPLOAD = 5000000;
 export const VALID_IMAGE_FORMATS = /jpeg|jpg/;
+
+//Order
+export const MAX_DISTANCE_SEARCH_ORDERS = 20;

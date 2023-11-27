@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
+import { Location } from 'src/common/interfaces/order.interface';
+import { UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -60,5 +62,23 @@ export class UsersService {
         error.message,
       );
     }
+  }
+
+  async addCoordinates(
+    userId: string,
+    coordinates: Location,
+  ): Promise<boolean> {
+    try {
+      return await this.usersRepository.addCoordinates(userId, coordinates);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error adding coordinates to user',
+        error.message,
+      );
+    }
+  }
+
+  async findAllDrivers(): Promise<UserDocument[]> {
+    return this.usersRepository.findDrivers();
   }
 }

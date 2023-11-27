@@ -16,6 +16,9 @@ import { IdValidationPipe } from 'src/common/pipes/id-validation.pipe';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthRoles } from 'src/common/enums/roles.enum';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Location } from 'src/common/interfaces/order.interface';
+import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
+import { IAuthUser } from 'src/common/interfaces/auth-user.interface';
 @ApiTags('users')
 @Auth([AuthRoles.Admin])
 @Controller('users')
@@ -98,6 +101,28 @@ export class UsersController {
   async remove(@Param('id', IdValidationPipe) id: string) {
     try {
       return await this.usersService.remove(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Auth([AuthRoles.User, AuthRoles.Driver])
+  @Patch('/coordinates')
+  @ApiResponse({
+    status: 200,
+    description: 'User coordinates updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @ApiBody({ type: Location })
+  async addCoordinates(
+    @Param('id', IdValidationPipe) id: string,
+    @Body() coordinates: Location,
+    @AuthUser() user: IAuthUser,
+  ) {
+    try {
+      const { userId } = user;
+      return await this.usersService.addCoordinates(userId, coordinates);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

@@ -9,6 +9,7 @@ import { PageDto } from 'src/common/helpers/pagination/page.dto';
 import { PageMetaDto } from 'src/common/helpers/pagination/page-meta.dto';
 import { Order } from './entities/order.entity';
 import { OrderErrors } from 'src/common/error/order.error';
+import { OrderDocument } from './schemas/order.schema';
 
 @Injectable()
 export class OrdersService {
@@ -18,7 +19,7 @@ export class OrdersService {
     private readonly chatRepository: ChatRepository,
   ) {}
 
-  async createOrder(createOrderDto: CreateOrderDto): Promise<Order> {
+  async createOrder(createOrderDto: CreateOrderDto): Promise<OrderDocument> {
     try {
       return await this.ordersRepository.create(createOrderDto);
     } catch (error) {
@@ -30,7 +31,7 @@ export class OrdersService {
     pageOptionsDto: PageOptionsDto,
     filters: Partial<Order>,
     userId: string,
-  ): Promise<PageDto<Order>> {
+  ): Promise<PageDto<any>> {
     try {
       const user = await this.userRepository.findOne(userId);
       if (!user?.is_verify_docs) {
@@ -53,7 +54,10 @@ export class OrdersService {
     }
   }
 
-  async getOrderById(id: string, userId: string): Promise<Order | null> {
+  async getOrderById(
+    id: string,
+    userId: string,
+  ): Promise<OrderDocument | null> {
     try {
       const order = await this.ordersRepository.findOne(id);
 
@@ -73,7 +77,7 @@ export class OrdersService {
   async updateOrder(
     id: string,
     updateOrderDto: UpdateOrderDto,
-  ): Promise<Order | null> {
+  ): Promise<OrderDocument | null> {
     try {
       return await this.ordersRepository.update(id, updateOrderDto);
     } catch (error) {
@@ -92,16 +96,21 @@ export class OrdersService {
   async updateOrderByDriver(
     id: string,
     driverId: string,
-  ): Promise<Order | null> {
+  ): Promise<OrderDocument | null> {
     try {
       const order = await this.ordersRepository.updateOrderByDriver(
         id,
         driverId,
       );
+
+      if (!order) {
+        return null;
+      }
+
       await this.chatRepository.createChat({
-        userId: order?.userId || '',
+        userId: order.userId || '',
         driverId: driverId,
-        orderId: order?._id,
+        orderId: order._id,
       });
 
       return order;
@@ -110,7 +119,7 @@ export class OrdersService {
     }
   }
 
-  async getCurrentOrdersForDriver(driverId: string): Promise<Order[]> {
+  async getCurrentOrdersForDriver(driverId: string): Promise<OrderDocument[]> {
     try {
       return await this.ordersRepository.getCurrentOrdersForDriver(driverId);
     } catch (error) {
