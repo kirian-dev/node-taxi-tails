@@ -1,9 +1,11 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
   IsNumber,
   IsObject,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export class CreateOrderDto {
@@ -17,11 +19,10 @@ export class CreateOrderDto {
     coordinates: [number, number];
   };
 
+  @IsArray()
   @IsNotEmpty()
-  @IsObject()
-  dropOffLocation: {
-    coordinates: [number, number];
-  };
+  @Type(() => Array)
+  dropOffLocations: [number, number][];
 
   @IsNotEmpty()
   @IsNumber()

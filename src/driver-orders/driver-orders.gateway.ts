@@ -1,4 +1,3 @@
-// driver-orders.gateway.ts
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -7,27 +6,27 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { DriverOrdersService } from './driver-orders.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UsersService } from 'src/users/users.service';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { DriverOrdersService } from './driver-orders.service';
 
 @WebSocketGateway()
+@ApiTags('Driver Orders')
 @Injectable()
 export class DriverOrdersGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private activeConnections: Map<string, string>;
-  private server: Server;
+  private readonly activeConnections = new Map<string, string>();
+  private readonly server: Server;
 
   constructor(
     private readonly ordersService: DriverOrdersService,
     private readonly usersService: UsersService,
-  ) {
-    this.activeConnections = new Map();
-  }
+  ) {}
 
   handleConnection(client: Socket) {
-    const idOrDriverId = this.getClientIdOrDriverId(client);
+    const idOrDriverId = this.getUserBySocketConnection(client);
     if (idOrDriverId) {
       this.activeConnections.set(client.id, idOrDriverId);
     }
@@ -38,42 +37,45 @@ export class DriverOrdersGateway
   }
 
   @SubscribeMessage('connectToOrders')
+  @ApiResponse({
+    status: 200,
+    description: 'Connect to orders and receive nearby orders',
+  })
   async handleConnectToOrders(
     client: Socket,
-    data: {
-      coordinates: [number, number];
-    },
+    data: { coordinates: [number, number] },
   ) {
     const { coordinates } = data;
     const nearbyOrders =
-      await this.ordersService.findOrdersNearCoordinates(coordinates);
+      await this.ordersService.findOrdersNearGivenDriverCoordinates(
+        coordinates,
+      );
     const driverId = this.activeConnections.get(client.id);
     if (driverId) {
       this.server.to(client.id).emit('nearbyOrders', { nearbyOrders });
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  @ApiResponse({
+    status: 200,
+    description: 'Notify drivers of proximity to orders',
+  })
   async handleCron() {
-    await this.updateNearbyOrdersForDrivers();
-  }
-
-  private async updateNearbyOrdersForDrivers() {
     try {
       const allDrivers = await this.usersService.findAllDrivers();
-
       for (const driver of allDrivers) {
-        if (!driver.coordinates) {
-          console.error(`Driver ${driver.id} does not have coordinates.`);
+        const { coordinates, id: driverId } = driver;
+        if (!coordinates.length) {
+          console.error(`Driver ${driverId} does not have coordinates.`);
           continue;
         }
+        const nearbyOrders =
+          await this.ordersService.findOrdersNearGivenDriverCoordinates(
+            coordinates,
+          );
 
-        const nearbyOrders = await this.ordersService.findOrdersNearCoordinates(
-          driver.coordinates,
-        );
-
-        const socketId = this.activeConnections.get(driver.id);
-
+        const socketId = this.activeConnections.get(driverId);
         if (socketId) {
           this.server.to(socketId).emit('nearbyOrders', { nearbyOrders });
         }
@@ -83,18 +85,9 @@ export class DriverOrdersGateway
     }
   }
 
-  private getClientIdOrDriverId(client: Socket): string | undefined {
-    const userId = client.handshake.query?.userId;
-    const driverId = client.handshake.query?.driverId;
-
-    if (userId) {
-      return Array.isArray(userId) ? userId[0] : userId;
-    }
-
-    if (driverId) {
-      return Array.isArray(driverId) ? driverId[0] : driverId;
-    }
-
-    return undefined;
+  private getUserBySocketConnection(client: Socket): string | undefined {
+    const userId =
+      client.handshake.query?.userId || client.handshake.query?.driverId;
+    return userId && Array.isArray(userId) ? userId[0] : userId;
   }
 }

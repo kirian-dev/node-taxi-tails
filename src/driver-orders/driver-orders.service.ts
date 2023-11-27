@@ -5,10 +5,12 @@ import { OrdersRepository } from 'src/orders/orders.repository';
 export class DriverOrdersService {
   constructor(private readonly ordersRepository: OrdersRepository) {}
 
-  async findOrdersNearCoordinates(coordinates: [number, number]) {
+  async findOrdersNearGivenDriverCoordinates(coordinates: [number, number]) {
     try {
       const nearbyOrders =
-        await this.ordersRepository.findOrdersNearCoordinates(coordinates);
+        await this.ordersRepository.findOrdersNearGivenDriverCoordinates(
+          coordinates,
+        );
       return nearbyOrders;
     } catch (error) {
       throw error;

@@ -15,7 +15,6 @@ export class CheckDocumentOwnerMiddleware implements NestMiddleware {
 
     try {
       const document = await this.documentsRepository.findById(documentId);
-      console.log(document, userId, documentId);
       if (!document) {
         throw documentErrors.DocumentNotFoundError;
       }
