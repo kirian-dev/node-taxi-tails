@@ -13,3 +13,6 @@ export const VALID_IMAGE_FORMATS = /jpeg|jpg/;
 
 //Order
 export const MAX_DISTANCE_SEARCH_ORDERS = 20;
+
+//Redis
+export const TIME_DRIVER_IN_CACHE = 10000;

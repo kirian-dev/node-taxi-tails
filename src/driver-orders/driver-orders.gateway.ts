@@ -4,36 +4,43 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { Injectable } from '@nestjs/common';
+import { Socket, Server } from 'socket.io';
+import { Inject, Injectable, UseInterceptors } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UsersService } from 'src/users/users.service';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 import { DriverOrdersService } from './driver-orders.service';
+import { TIME_DRIVER_IN_CACHE } from 'src/common/consts/consts';
+import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
 
 @WebSocketGateway()
 @ApiTags('Driver Orders')
+@UseInterceptors(CacheInterceptor)
 @Injectable()
 export class DriverOrdersGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly activeConnections = new Map<string, string>();
   private readonly server: Server;
 
   constructor(
     private readonly ordersService: DriverOrdersService,
     private readonly usersService: UsersService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  handleConnection(client: Socket) {
-    const idOrDriverId = this.getUserBySocketConnection(client);
-    if (idOrDriverId) {
-      this.activeConnections.set(client.id, idOrDriverId);
+  async handleConnection(client: Socket) {
+    const userId = this.getUserBySocketConnection(client);
+    if (userId) {
+      await this.cacheManager.set(userId, client.id, TIME_DRIVER_IN_CACHE);
     }
   }
 
-  handleDisconnect(client: Socket) {
-    this.activeConnections.delete(client.id);
+  async handleDisconnect(client: Socket) {
+    const userId = this.getUserBySocketConnection(client);
+    if (userId) {
+      await this.cacheManager.del(userId);
+    }
   }
 
   @SubscribeMessage('connectToOrders')
@@ -50,13 +57,14 @@ export class DriverOrdersGateway
       await this.ordersService.findOrdersNearGivenDriverCoordinates(
         coordinates,
       );
-    const driverId = this.activeConnections.get(client.id);
-    if (driverId) {
+    this.cacheManager.set('id', client.id, TIME_DRIVER_IN_CACHE);
+    const userId = this.getUserBySocketConnection(client);
+    if (userId) {
       this.server.to(client.id).emit('nearbyOrders', { nearbyOrders });
     }
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   @ApiResponse({
     status: 200,
     description: 'Notify drivers of proximity to orders',
@@ -74,8 +82,7 @@ export class DriverOrdersGateway
           await this.ordersService.findOrdersNearGivenDriverCoordinates(
             coordinates,
           );
-
-        const socketId = this.activeConnections.get(driverId);
+        const socketId = (await this.cacheManager.get(driverId)) as string;
         if (socketId) {
           this.server.to(socketId).emit('nearbyOrders', { nearbyOrders });
         }
