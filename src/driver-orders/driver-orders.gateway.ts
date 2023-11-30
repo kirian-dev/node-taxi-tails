@@ -50,20 +50,17 @@ export class DriverOrdersGateway
   })
   async handleConnectToOrders(
     client: Socket,
-    data: { coordinates: [number, number] },
+    data: { coordinates: [number, number]; driverId: string },
   ) {
-    const { coordinates } = data;
+    const { coordinates, driverId } = data;
+    await this.cacheManager.set(`${driverId}`, client.id, TIME_DRIVER_IN_CACHE);
+
     const nearbyOrders =
       await this.ordersService.findOrdersNearGivenDriverCoordinates(
         coordinates,
       );
-    this.cacheManager.set('id', client.id, TIME_DRIVER_IN_CACHE);
-    const userId = this.getUserBySocketConnection(client);
-    if (userId) {
-      this.server.to(client.id).emit('nearbyOrders', { nearbyOrders });
-    }
+    this.server.to(client.id).emit('nearbyOrders', { nearbyOrders });
   }
-
   @Cron(CronExpression.EVERY_10_MINUTES)
   @ApiResponse({
     status: 200,
