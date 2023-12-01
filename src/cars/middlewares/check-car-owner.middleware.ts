@@ -15,7 +15,6 @@ export class CheckCarOwnerMiddleware implements NestMiddleware {
 
     try {
       const car = await this.carsRepository.findOne(carId);
-      console.log(car, userId, carId);
       if (!car) {
         throw CarErrors.CarNotFoundError;
       }

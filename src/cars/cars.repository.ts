@@ -39,9 +39,8 @@ export class CarsRepository {
       }
 
       const query = { ...filters };
-      console.log(query);
       return await this.carModel
-        .find()
+        .find(query)
         .sort(sort)
         .skip(skip)
         .limit(take || DEFAULT_ITEMS_PER_PAGE)

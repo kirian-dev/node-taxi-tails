@@ -20,7 +20,7 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, required: false, ref: 'User' })
   driverId: string | null;
 
-  @Prop({ required: true, type: Object })
+  @Prop({ required: true, type: Object, index: '2dsphere' })
   pickupLocation: {
     type: {
       type: string;
@@ -30,15 +30,8 @@ export class Order extends Document {
     coordinates: [number, number];
   };
 
-  @Prop({ required: true, type: Object })
-  dropOffLocation: {
-    type: {
-      type: string;
-      enum: ['Point'];
-      default: 'Point';
-    };
-    coordinates: [number, number];
-  };
+  @Prop({ required: true, type: Array })
+  dropOffLocations: [number, number][];
 
   @Prop({ required: true })
   fare: number;
@@ -54,4 +47,3 @@ export class Order extends Document {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
-OrderSchema.index({ pickupLocation: '2dsphere' }, { unique: true });

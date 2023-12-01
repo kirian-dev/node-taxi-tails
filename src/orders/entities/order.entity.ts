@@ -8,9 +8,7 @@ export class Order {
   pickupLocation: {
     coordinates: [number, number];
   };
-  dropOffLocation: {
-    coordinates: [number, number];
-  };
+  dropOffLocations: [number, number][];
   fare: number;
   status: OrderStatus;
   createdAt?: Date;

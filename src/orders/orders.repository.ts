@@ -133,24 +133,22 @@ export class OrdersRepository {
     }
   }
 
-  async findOrdersNearCoordinates(coordinates: [number, number]) {
-    console.log('coordinates', coordinates);
+  async findOrdersNearGivenDriverCoordinates(coordinates: [number, number]) {
     try {
       const nearbyOrders = await this.orderModel
         .find({
-          status: OrderStatus.Pending,
           pickupLocation: {
             $nearSphere: {
               $geometry: {
                 type: 'Point',
-                coordinates: [150.644, -34.397],
+                coordinates: coordinates,
               },
-              $maxDistance: MAX_DISTANCE_SEARCH_ORDERS * 10000,
+              $maxDistance: MAX_DISTANCE_SEARCH_ORDERS,
             },
           },
+          status: OrderStatus.Pending,
         })
         .exec();
-
       return nearbyOrders;
     } catch (error) {
       throw error;
