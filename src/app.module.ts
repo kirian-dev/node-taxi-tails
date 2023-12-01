@@ -12,6 +12,10 @@ import { DocumentsModule } from './documents/documents.module';
 import { ChatModule } from './chat/chat.module';
 import { DriverOrdersModule } from './driver-orders/driver-orders.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import { config } from './configs/config';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const redisStore = require('cache-manager-redis-store').redisStore;
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +32,12 @@ import { ScheduleModule } from '@nestjs/schedule';
     ChatModule,
     DriverOrdersModule,
     ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: config().redisHost,
+      port: parseInt(config().redisPort, 10),
+    }),
   ],
   providers: [
     {

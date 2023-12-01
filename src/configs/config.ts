@@ -12,6 +12,8 @@ export type AppConfig = {
   awsAccessKeyId: string;
   awsSecretAccessKey: string;
   awsS3Region: string;
+  redisHost: string;
+  redisPort: string;
 };
 
 export const config = (): AppConfig => {
@@ -27,6 +29,8 @@ export const config = (): AppConfig => {
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     AWS_S3_REGION,
+    REDIS_HOST,
+    REDIS_PORT,
   } = process.env;
 
   if (
@@ -40,7 +44,9 @@ export const config = (): AppConfig => {
     !SMTP_PORT ||
     !AWS_ACCESS_KEY_ID ||
     !AWS_SECRET_ACCESS_KEY ||
-    !AWS_S3_REGION
+    !AWS_S3_REGION ||
+    !REDIS_HOST ||
+    !REDIS_PORT
   ) {
     throw new Error(MISSING_ENV_VARS_ERROR);
   }
@@ -57,5 +63,7 @@ export const config = (): AppConfig => {
     awsAccessKeyId: AWS_ACCESS_KEY_ID,
     awsSecretAccessKey: AWS_SECRET_ACCESS_KEY,
     awsS3Region: AWS_S3_REGION,
+    redisHost: REDIS_HOST,
+    redisPort: REDIS_PORT,
   };
 };
