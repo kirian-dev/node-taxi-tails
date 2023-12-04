@@ -1,27 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exception/custom-exception.filter';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.connectMicroservice<MicroserviceOptions>({
+  const app = await NestFactory.createMicroservice(AppModule, {
     transport: Transport.TCP,
     options: {
       host: 'localhost',
-      port: 8001,
+      port: process.env.APP_PORT || 3000,
     },
   });
-
-  await app.startAllMicroservices();
-  app.setGlobalPrefix('api/v1');
-  app.enableCors({ origin: true, methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' });
+  app.listen();
   app.useGlobalPipes(new ValidationPipe());
-  app.use(passport.initialize());
   app.useGlobalFilters(new HttpExceptionFilter());
-  await app.listen(process.env.APP_PORT || 3000);
+  console.log('Auth service is listening on port ' + process.env.APP_PORT);
 }
 bootstrap();
